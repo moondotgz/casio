@@ -17,7 +17,11 @@ int main(int argc, char **argv)
         QApplication::setFont(f);
     }
     MainWindow w;
+#ifdef Q_OS_IOS
+    w.showMaximized();
+#else
     w.show();
+#endif
 
     // Optional automation: --script "<steps>" --shot <file.png>
     const QStringList args = app.arguments();

@@ -15,6 +15,20 @@ cmake --build build
 
 You need Qt 6 (Core, Gui, Widgets) and a C++20 compiler.
 
+### iOS
+
+The `iOS build` GitHub Actions workflow (`.github/workflows/ios.yml`) builds an unsigned
+`SciCalc991-unsigned.ipa` with Qt for iOS and uploads it as a workflow artifact. Sign it yourself
+(Xcode, AltStore, Sideloadly, …) to install it on a device. To build locally on a Mac:
+
+```sh
+~/Qt/6.8.3/ios/bin/qt-cmake -S . -B build-ios -G Xcode -DQT_HOST_PATH=~/Qt/6.8.3/macos
+open build-ios/SciCalc991.xcodeproj   # pick your team under Signing & Capabilities, then Run
+```
+
+On iOS the window fills the screen, keys are smaller, and the system keyboard stays hidden
+in favour of the calculator keypad.
+
 ## Modes (MENU)
 
 | Key | Mode | What it does |

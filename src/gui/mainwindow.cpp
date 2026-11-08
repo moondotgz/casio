@@ -30,14 +30,24 @@
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 {
     setWindowTitle("SciCalc 991");
+#ifdef Q_OS_IOS
+    // Phone screens are smaller than the desktop minimum; the window fills the screen instead.
+    setMinimumSize(0, 0);
+#else
     setMinimumSize(430, 860);
     resize(470, 960);
+#endif
     loadState();
     ThemeManager::instance().load();
 
     auto *v = new QVBoxLayout(this);
+#ifdef Q_OS_IOS
+    v->setContentsMargins(8, 6, 8, 8);
+    v->setSpacing(8);
+#else
     v->setContentsMargins(18, 14, 18, 18);
     v->setSpacing(10);
+#endif
 
     // header
     auto *head = new QHBoxLayout;
@@ -60,7 +70,11 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
     m_lcd->setObjectName("lcd");
     m_lcd->setAttribute(Qt::WA_StyledBackground);
     m_lcd->setStyleSheet(ModePage::styleSheet());
+#ifdef Q_OS_IOS
+    m_lcd->setMinimumHeight(200);
+#else
     m_lcd->setMinimumHeight(340);
+#endif
     auto *lv = new QVBoxLayout(m_lcd);
     lv->setContentsMargins(4, 3, 4, 4);
     lv->setSpacing(2);
@@ -432,6 +446,7 @@ void MainWindow::applyTheme()
     if (a.showKeypad != m_keypadShown) {
         m_keypadShown = a.showKeypad;
         m_keypad->setVisible(a.showKeypad);
+#ifndef Q_OS_IOS
         if (a.showKeypad) {
             setMinimumSize(430, 860);
             resize(std::max(width(), 470), std::max(height(), 960));
@@ -439,6 +454,7 @@ void MainWindow::applyTheme()
             setMinimumSize(340, 360);
             resize(width(), 520);
         }
+#endif
     }
     if (a.alwaysOnTop != m_onTop) {
         m_onTop = a.alwaysOnTop;

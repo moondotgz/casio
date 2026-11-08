@@ -122,7 +122,11 @@ QSize KeyButton::sizeHint() const
 {
     bool big = m_def.style == KeyStyle::Number || m_def.style == KeyStyle::Accent;
     int legend = appearance().showLegends ? 0 : 11;
+#ifdef Q_OS_IOS
+    return big ? QSize(60, 46 - legend) : QSize(48, 38 - legend);
+#else
     return big ? QSize(74, 52 - legend) : QSize(60, 44 - legend);
+#endif
 }
 
 void KeyButton::paintEvent(QPaintEvent *)

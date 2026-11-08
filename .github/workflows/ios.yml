@@ -1,0 +1,55 @@
+name: iOS build
+
+on:
+  push:
+    branches: [ios, master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  QT_VERSION: '6.8.3'
+
+jobs:
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt for iOS (plus the macOS host tools)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: mac
+          target: ios
+          arch: ios
+          autodesktop: true
+          cache: true
+
+      - name: Configure
+        run: |
+          QT_HOST="$(dirname "$QT_ROOT_DIR")/macos"
+          "$QT_ROOT_DIR/bin/qt-cmake" -S . -B build-ios -G Xcode \
+            -DQT_HOST_PATH="$QT_HOST" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build (unsigned)
+        run: |
+          cmake --build build-ios --config Release --target scicalc991 -- \
+            -sdk iphoneos -quiet \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Package .ipa
+        run: |
+          APP="$(find build-ios -type d -name 'scicalc991.app' -path '*Release-iphoneos*' | head -n1)"
+          test -n "$APP" || { echo "app bundle not found"; find build-ios -name '*.app'; exit 1; }
+          mkdir -p dist/Payload
+          cp -R "$APP" dist/Payload/
+          (cd dist && zip -qry SciCalc991-unsigned.ipa Payload)
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SciCalc991-ios-unsigned
+          path: dist/SciCalc991-unsigned.ipa
+          if-no-files-found: error

@@ -23,7 +23,7 @@ add_library(calccore STATIC
 target_include_directories(calccore PUBLIC src)
 target_link_libraries(calccore PUBLIC Qt6::Core)
 
-add_executable(scicalc991
+set(SCICALC_GUI_SOURCES
   src/main.cpp
   src/gui/mathview.cpp
   src/gui/keypad.cpp
@@ -41,9 +41,27 @@ add_executable(scicalc991
   src/gui/richtext.cpp
   src/gui/customizedialog.cpp
 )
+
+if(IOS)
+  # qt_add_executable pulls in the static iOS platform plugin and generates the app bundle.
+  qt_add_executable(scicalc991 MACOSX_BUNDLE ${SCICALC_GUI_SOURCES})
+  set(SCICALC_BUNDLE_ID "io.github.moondotgz.scicalc991" CACHE STRING "iOS bundle identifier")
+  set_target_properties(scicalc991 PROPERTIES
+    MACOSX_BUNDLE_BUNDLE_NAME "SciCalc 991"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "${SCICALC_BUNDLE_ID}"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${SCICALC_BUNDLE_ID}"
+    XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
+  )
+else()
+  add_executable(scicalc991 ${SCICALC_GUI_SOURCES})
+endif()
 target_link_libraries(scicalc991 PRIVATE calccore Qt6::Widgets)
 
-enable_testing()
-add_executable(test_core tests/test_core.cpp)
-target_link_libraries(test_core PRIVATE calccore)
-add_test(NAME core COMMAND test_core)
+if(NOT IOS)
+  enable_testing()
+  add_executable(test_core tests/test_core.cpp)
+  target_link_libraries(test_core PRIVATE calccore)
+  add_test(NAME core COMMAND test_core)
+endif()
