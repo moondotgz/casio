@@ -22,7 +22,6 @@ jobs:
           host: mac
           target: ios
           arch: ios
-          autodesktop: true
           cache: true
 
       - name: Configure
