@@ -13,10 +13,6 @@
 ExprEdit::ExprEdit(QWidget *parent) : QLineEdit(parent)
 {
     setObjectName("exprEdit");
-#ifdef Q_OS_IOS
-    // Input comes from the on-screen calculator keypad; keep the iOS system keyboard from covering it.
-    setAttribute(Qt::WA_InputMethodEnabled, false);
-#endif
 }
 
 void ExprEdit::insertTemplate(const QString &t)

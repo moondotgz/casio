@@ -1,7 +1,30 @@
 #include "gui/mainwindow.h"
+#include "gui/modepage.h"
+#include <QAbstractItemView>
+#include <QInputMethodQueryEvent>
 #include <QApplication>
 #include <QStyleFactory>
 #include <QTimer>
+
+#ifdef Q_OS_IOS
+// On iOS the system keyboard pops up whenever the focused widget reports that it accepts
+// text input, and it covers the calculator keypad. Expression fields and data tables are
+// driven by the keypad, so they answer "no" (QLineEdit ignores WA_InputMethodEnabled for this).
+class NoSystemKeyboard : public QObject {
+public:
+    using QObject::QObject;
+    bool eventFilter(QObject *obj, QEvent *e) override
+    {
+        if (e->type() != QEvent::InputMethodQuery) return false;
+        if (!qobject_cast<ExprEdit *>(obj) && !qobject_cast<QAbstractItemView *>(obj)) return false;
+        auto *q = static_cast<QInputMethodQueryEvent *>(e);
+        if (!(q->queries() & Qt::ImEnabled)) return false;
+        obj->event(e);   // let the widget answer the other queries (cursor position etc.)
+        q->setValue(Qt::ImEnabled, false);
+        return true;
+    }
+};
+#endif
 
 int main(int argc, char **argv)
 {
@@ -9,6 +32,9 @@ int main(int argc, char **argv)
     QApplication::setApplicationName("SciCalc991");
     QApplication::setOrganizationName("SciCalc991");
     QApplication::setStyle(QStyleFactory::create("Fusion"));
+#ifdef Q_OS_IOS
+    app.installEventFilter(new NoSystemKeyboard(&app));
+#endif
     // Optional: --font "<family>" sets the interface font (keys, menus, tables)
     const QStringList pre = app.arguments();
     if (int fi = int(pre.indexOf("--font")); fi > 0 && fi + 1 < pre.size()) {
